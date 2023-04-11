@@ -6,50 +6,55 @@
     <title>Half Tone Printing</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
     <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <canvas id="screen"></canvas>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <canvas id="screen" class="w-full h-auto"></canvas>
 
-    <div class="field">
-        <input type="file" accept="image/png, image/jpeg" onchange="handleFiles(this.files)">
-    </div>
+        <div class="field mt-4">
+            <input type="file" accept="image/png, image/jpeg" onchange="handleFiles(this.files)" class="p-2 border rounded">
+        </div>
 
-    <div class="field">
-        <select onchange="changeType(this.value)">
-            <option value="raster">Raster</option>
-            <option value="halftone" selected>Half-Tone</option>
-        </select>
-    </div>
+        <div class="field mt-4">
+            <select onchange="changeType(this.value)" class="p-2 border rounded">
+                <option value="raster">Raster</option>
+                <option value="halftone" selected>Half-Tone</option>
+            </select>
+        </div>
 
-    <div class="field" id="raster-layer-select">
-        <select onchange="changeRasterLayer(this.value)">
-            <option value="original" selected>Original</option>
-            <option value="cyan">Cyan</option>
-            <option value="yellow">Yellow</option>
-            <option value="magenta">Magenta</option>
-            <option value="key">Black Key</option>
-        </select>
-    </div>
+        <div class="field mt-4" id="raster-layer-select">
+            <select onchange="changeRasterLayer(this.value)" class="p-2 border rounded">
+                <option value="original" selected>Original</option>
+                <option value="cyan">Cyan</option>
+                <option value="yellow">Yellow</option>
+                <option value="magenta">Magenta</option>
+                <option value="key">Black Key</option>
+            </select>
+        </div>
 
-    <div class="field" id="halftone-layer-select">
-        <ul>
-            <li><input type="checkbox" name="cyan" checked onchange="changeHalftoneLayer(this)">Cyan</li>
-            <li><input type="checkbox" name="yellow" checked onchange="changeHalftoneLayer(this)">Yellow</li>
-            <li><input type="checkbox" name="magenta" checked onchange="changeHalftoneLayer(this)">Magenta</li>
-            <li><input type="checkbox" name="key" checked onchange="changeHalftoneLayer(this)">Black Key</li>
-        </ul>
-        <span>Angles:</span> <select onchange="changeAngle(this.value)">
-            <option value="0">15 / 0 / 45 / 75</option>
-            <option value="1">105 / 90 / 75 / 15</option>
-            <option value="2">15 / 0 / 75 / 45</option>
-            <option value="3">165 / 90 / 45 / 105</option>
-        </select>
-        <span>Cell Size:</span> <select onchange="changeCellSize(this.value)" value="5">
-            <option value="3">3</option>
-            <option value="5">5</option>
-            <option value="10">10</option>
-            <option value="20">20</option>
-        </select>
+        <div class="field mt-4" id="halftone-layer-select">
+            <ul class="list-none">
+                <li><input type="checkbox" name="cyan" checked onchange="changeHalftoneLayer(this)" class="mr-2">Cyan</li>
+                <li><input type="checkbox" name="yellow" checked onchange="changeHalftoneLayer(this)" class="mr-2">Yellow</li>
+                <li><input type="checkbox" name="magenta" checked onchange="changeHalftoneLayer(this)" class="mr-2">Magenta</li>
+                <li><input type="checkbox" name="key" checked onchange="changeHalftoneLayer(this)" class="mr-2">Black Key</li>
+            </ul>
+            <span>Angles:</span>
+            <select onchange="changeAngle(this.value)" class="p-2 border rounded inline-block">
+                <option value="0">15 / 0 / 45 / 75</option>
+                <option value="1">105 / 90 / 75 / 15</option>
+                <option value="2">15 / 0 / 75 / 45</option>
+                <option value="3">165 / 90 / 45 / 105</option>
+            </select>
+            <span>Cell Size:</span>
+            <select onchange="changeCellSize(this.value)" value="5" class="p-2 border rounded inline-block">
+                <option value="3">3</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+            </select>
+        </div>
     </div>
 
     <script src='main.js'></script>
