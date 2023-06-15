@@ -154,10 +154,10 @@ function drawRasterLayer() {
 function drawHalftone() {
     if (ctx === undefined || layers.key === undefined) return;
     ctx.clearRect(0, 0, layers.key.width, layers.key.height);
-    if (halftones.yellow)  screening(layers.yellow, 2, "rgba(255, 255, 0, 0.7)", angles.yellow);
-    if (halftones.cyan)    screening(layers.cyan, 0, "rgba(0, 255, 255, 0.7)", angles.cyan);
-    if (halftones.magenta) screening(layers.magenta, 1, "rgba(255, 0, 255, 0.7)", angles.magenta);
-    if (halftones.key)     screening(layers.key, 0, "rgba(0, 0, 0, 0.7)", angles.key);
+    if (halftones.yellow)  screening(layers.yellow, 2, "rgba(255, 255, 0, 1)", angles.yellow);
+    if (halftones.cyan)    screening(layers.cyan, 0, "rgba(0, 255, 255, 1)", angles.cyan);
+    if (halftones.magenta) screening(layers.magenta, 1, "rgba(255, 0, 255, 1)", angles.magenta);
+    if (halftones.key)     screening(layers.key, 0, "rgba(0, 0, 0, 1)", angles.key);
 }
 
 function screening(image, channel, color, angle) {
