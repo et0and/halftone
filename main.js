@@ -41,7 +41,7 @@ const img = new Image();
 img.addEventListener('load', function () {
     changeImage(img);
 }, false);
-img.src = "example.jpg";
+img.src = "cat.png";
 
 function handleFiles(files) {
     layers = {};
