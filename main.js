@@ -1,3 +1,4 @@
+
 let ctx;
 let layers = {};
 let halftones = {
@@ -41,7 +42,7 @@ const img = new Image();
 img.addEventListener('load', function () {
     changeImage(img);
 }, false);
-img.src = "cat.png";
+img.src = "example.jpg";
 
 function handleFiles(files) {
     layers = {};
@@ -114,65 +115,84 @@ function changeImage(img) {
     };
 
     function putPixel(image, i, c, b) {
-        const r = b & 1 ? ((1 - c) * 255) & 0xFF : 0xFF;
-        const g = b & 2 ? ((1 - c) * 255) & 0xFF : 0xFF;
-        const b = b & 4 ? ((1 - c) * 255) & 0xFF : 0xFF;
-
-        const isWhite = r > 245 && g > 245 && b > 245;
-
-        image.data[i] = r;
-        image.data[i+1] = g;
-        image.data[i+2] = b;
-        image.data[i+3] = isWhite ? 0 : 0xFF;
+        image.data[i] = b & 1 ? ((1 - c) * 255) & 0xFF : 0xFF;
+        image.data[i+1] = b & 2 ? ((1 - c) * 255) & 0xFF : 0xFF;
+        image.data[i+2] = b & 4 ? ((1 - c) * 255) & 0xFF : 0xFF;
+        image.data[i+3] = 0xFF;
     }
 
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const r = imageData.data[i];
-        const g = imageData.data[i + 1];
-        const b = imageData.data[i + 2];
-        const c = 1 - (r / 255);
-        const m = 1 - (g / 255);
-        const y = 1 - (b / 255);
-        const k = Math.min(c, m, y);
-        const c1 = (c - k) / (1 - k);
-        const m1 = (m - k) / (1 - k);
-        const y1 = (y - k) / (1 - k);
-        putPixel(cImg, i, c1, 2);
-        putPixel(mImg, i, m1, 1);
-        putPixel(yImg, i, y1, 4);
-        putPixel(kImg, i, k, 7);
+        const R = imageData.data[i] / 255;
+        const G = imageData.data[i+1] / 255;
+        const B = imageData.data[i+2] / 255;
+        const K = 1 - Math.max(R, G, B);
+        const C = (1 - K - R) / (1 - K);
+        const M = (1 - K - G) / (1 - K);
+        const Y = (1 - K - B) / (1 - K);
+        putPixel(cImg, i, C, 1);
+        putPixel(mImg, i, M, 2);
+        putPixel(yImg, i, Y, 4);
+        putPixel(kImg, i, K, 1 | 2 | 4);
     }
 
-    drawHalftone();
+    changeMode();
 }
 
 function drawRasterLayer() {
-    if (ctx === undefined) return;
-    ctx.putImageData(layers[currentLayer], 0, 0);
+    if (ctx) {
+        ctx.putImageData(layers[currentLayer], 0, 0);
+    }
 }
 
 function drawHalftone() {
+    
     if (ctx === undefined || layers.key === undefined) return;
-    ctx.clearRect(0, 0, layers.key.width, layers.key.height);
-    if (halftones.yellow)  screening(layers.yellow, 2, "rgba(255, 255, 0, 1)", angles.yellow);
-    if (halftones.cyan)    screening(layers.cyan, 0, "rgba(0, 255, 255, 1)", angles.cyan);
-    if (halftones.magenta) screening(layers.magenta, 1, "rgba(255, 0, 255, 1)", angles.magenta);
-    if (halftones.key)     screening(layers.key, 0, "rgba(0, 0, 0, 1)", angles.key);
-}
+    
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.rect(0, 0, layers.key.width, layers.key.height);
+    ctx.fill();
 
-function screening(image, channel, color, angle) {
-    ctx.fillStyle = color;
-    ctx.translate(layers.key.width / 2, layers.key.height / 2);
-    ctx.rotate(angle * Math.PI / 180);
-    ctx.translate(-layers.key.width / 2, -layers.key.height / 2);
-    for (let x = 0; x < layers.key.width; x++) {
-        for (let y = 0; y < layers.key.height; y++) {
-            const i = (y * layers.key.width + x) * 4;
-            const c = image.data[i + channel];
-            if (c > 127) continue;
-            const size = cellSize * (1 - c / 255);
-            ctx.fillRect(x - size / 2, y - size / 2, size, size);
+    function screening(image, coffset, color, angle) {
+        const cx = image.width / 2;
+        const cy = image.height / 2;
+        const d = Math.max(cx, cy);
+        ctx.fillStyle = color;
+        for (let sy = -d*1.5; sy < d*1.5; sy += cellSize) {
+            for (let sx = -d*1.5; sx < d*1.5; sx += cellSize) {
+                const x = Math.floor(cx + sx * Math.cos(Math.PI * angle / 180) - sy * Math.sin(Math.PI * angle / 180));
+                const y = Math.floor(cy + sx * Math.sin(Math.PI * angle / 180) + sy * Math.cos(Math.PI * angle / 180));
+
+                if (x < 0 || x >= image.width || y < 0 || y >= image.height) {
+                    continue;
+                }
+
+                function average() {
+                    let sum = 0;
+                    let count = 0;
+                    for (let yy = 0; yy < cellSize; ++yy) {
+                        for (let xx = 0; xx < cellSize; ++xx) {
+                            const i = ((y+yy) * image.width + (x+xx)) * 4 + coffset;
+                            if (i >= 0 && i < image.data.length) {
+                                sum += 1 - image.data[i] / 255;
+                                count++;
+                            }
+                        }
+                    }
+                    return sum / count;
+                }
+
+                const c = average();
+                ctx.beginPath();
+                ctx.arc(x + cellSize/2, y + cellSize/2, cellSize * c / 1.4, 0, 2 * Math.PI, true);
+                ctx.fill();
+            }
         }
     }
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    
+    if (halftones.yellow)  screening(layers.yellow, 2, "rgba(255, 255, 0, 0.7)", angles.yellow);
+    if (halftones.cyan)    screening(layers.cyan, 0, "rgba(0, 255, 255, 0.7)", angles.cyan);
+    if (halftones.magenta) screening(layers.magenta, 1, "rgba(255, 0, 255, 0.7)", angles.magenta);
+    if (halftones.key)     screening(layers.key, 0, "rgba(0, 0, 0, 0.7)", angles.key);
+
 }
